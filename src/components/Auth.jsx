@@ -41,10 +41,12 @@ export default function Auth() {
     <div className="flex min-h-screen items-center justify-center bg-navy p-4">
       <div className="w-full max-w-sm rounded-2xl bg-white p-7 shadow-xl">
         <div className="mb-6 text-center">
-          <div className="text-2xl font-extrabold text-navy">
+          <div className="font-display text-2xl font-bold tracking-tight text-navy">
             MPG <span className="text-gold">OS</span>
           </div>
-          <p className="mt-1 text-sm text-ink/60">Media Payments Group sales dashboard</p>
+          <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.16em] text-ink/45">
+            Media Payments Group
+          </p>
         </div>
 
         <form onSubmit={submit} className="space-y-4">

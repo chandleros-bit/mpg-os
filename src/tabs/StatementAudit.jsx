@@ -3,9 +3,12 @@ import { streamClaudeJSON } from '../lib/ai.js';
 import { AUDIT_SYSTEM, auditPrompt } from '../lib/prompts.js';
 import { addAudit, updateLead } from '../lib/db.js';
 import { useDraft } from '../lib/useDraft.js';
+import { useCountUp } from '../lib/useCountUp.js';
 import {
   Card,
   SectionTitle,
+  PageHeader,
+  Eyebrow,
   Button,
   Field,
   Input,
@@ -13,10 +16,10 @@ import {
   Spinner,
   ErrorBanner,
   CopyBlock,
+  Money,
 } from '../components/ui.jsx';
 
-const fmt = (n) =>
-  '$' + (Number(n) || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
+const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
 
 export default function StatementAudit({ leads, refresh }) {
   const [form, setForm, clearDraft] = useDraft('statement-audit', {
@@ -45,6 +48,15 @@ export default function StatementAudit({ leads, refresh }) {
     return (f / v) * 100;
   }, [form.volume, form.fees]);
 
+  // The gap in basis points — the line that closes the deal.
+  const bps = useMemo(() => {
+    if (effectiveRate == null || result?.mpg_estimated_rate == null) return null;
+    return Math.round((effectiveRate - Number(result.mpg_estimated_rate)) * 100);
+  }, [effectiveRate, result]);
+
+  const monthly = useCountUp(result?.monthly_savings, !!result);
+  const annual = useCountUp(result?.annual_savings, !!result);
+
   const onPickLead = (id) => {
     const lead = leads.find((l) => l.id === id);
     setForm({
@@ -61,7 +73,7 @@ export default function StatementAudit({ leads, refresh }) {
     setResult(null);
     setSaved(false);
     if (!form.volume || !form.fees) {
-      setError('Monthly volume and total fees are required to run an audit.');
+      setError('Enter monthly volume and total fees to run the audit.');
       return;
     }
     setBusy(true);
@@ -124,14 +136,15 @@ export default function StatementAudit({ leads, refresh }) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-navy">Statement Audit</h1>
-        <p className="text-sm text-ink/60">
-          Enter their statement. Show them the money they are leaving on the table.
-        </p>
+      <div className="rise">
+        <PageHeader
+          eyebrow="Statement audit"
+          title="Statement audit"
+          sub="Enter their numbers. Show them what they're leaving on the table."
+        />
       </div>
 
-      <Card>
+      <Card className="rise">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Lead (optional)">
             <Select value={form.leadId} onChange={(e) => onPickLead(e.target.value)}>
@@ -154,7 +167,7 @@ export default function StatementAudit({ leads, refresh }) {
             <Input
               value={form.processor}
               onChange={(e) => setForm({ ...form, processor: e.target.value })}
-              placeholder="Square, Stripe, Toast..."
+              placeholder="Square, Stripe, Toast…"
             />
           </Field>
           <Field label="Monthly volume ($)">
@@ -173,18 +186,16 @@ export default function StatementAudit({ leads, refresh }) {
               placeholder="1450"
             />
           </Field>
-          <Field label="Current effective rate" hint="Auto-calculated from fees / volume">
-            <div className="rounded-lg border border-slate-200 bg-bg px-3 py-2 text-sm font-bold text-navy">
+          <Field label="Current effective rate" hint="Auto-calculated from fees ÷ volume">
+            <div className="flex items-center rounded-lg border border-line bg-bg px-3 py-2 font-mono tnum text-sm font-bold text-navy">
               {effectiveRate ? `${effectiveRate.toFixed(2)}%` : '—'}
             </div>
           </Field>
         </div>
 
-        <div className="mt-4 border-t border-slate-100 pt-4">
-          <div className="mb-2 text-xs font-bold uppercase tracking-wide text-ink/50">
-            Fee breakdown (optional)
-          </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+        <div className="mt-4 border-t border-line pt-4">
+          <Eyebrow className="text-ink/45">Fee breakdown (optional)</Eyebrow>
+          <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-5">
             {[
               ['monthlyFee', 'Monthly fee'],
               ['perTxnFee', 'Per-txn fee'],
@@ -206,7 +217,7 @@ export default function StatementAudit({ leads, refresh }) {
 
         <div className="mt-4 flex items-center gap-3">
           <Button variant="gold" onClick={runAudit} disabled={busy}>
-            {busy ? 'Auditing...' : 'Run Audit'}
+            {busy ? 'Auditing…' : 'Run audit'}
           </Button>
           <button
             onClick={() => {
@@ -221,7 +232,7 @@ export default function StatementAudit({ leads, refresh }) {
         </div>
         {busy && (
           <div className="mt-3">
-            <Spinner />
+            <Spinner label="Reading the statement…" />
           </div>
         )}
         <div className="mt-3">
@@ -231,57 +242,93 @@ export default function StatementAudit({ leads, refresh }) {
 
       {result && (
         <div className="space-y-6">
-          {/* Savings headline */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Card className="border-gold/40 bg-gold/10 text-center">
-              <div className="text-xs font-bold uppercase tracking-wide text-ink/60">
-                Monthly savings
+          {/* Signature: the statement panel — savings totaled like a receipt. */}
+          <div className="rise overflow-hidden rounded-xl bg-navy-deep shadow-md">
+            <div className="ledger-rule receipt-edge px-6 pb-9 pt-6">
+              <div className="flex items-center justify-between">
+                <Eyebrow className="text-gold">The gap</Eyebrow>
+                {form.businessName && (
+                  <span className="font-mono text-xs text-white/40">{form.businessName}</span>
+                )}
               </div>
-              <div className="mt-1 text-4xl font-extrabold text-gold">
-                {fmt(result.monthly_savings)}
+
+              <div className="mt-5 grid gap-6 sm:grid-cols-2">
+                <div>
+                  <div className="text-xs uppercase tracking-wide text-white/45">
+                    They save monthly
+                  </div>
+                  <div className="mt-1 font-mono tnum text-4xl font-bold text-gold-bright sm:text-5xl">
+                    {fmt(monthly)}
+                  </div>
+                </div>
+                <div className="sm:border-l sm:border-white/10 sm:pl-6">
+                  <div className="text-xs uppercase tracking-wide text-white/45">
+                    They save a year
+                  </div>
+                  <div className="mt-1 font-mono tnum text-4xl font-bold text-gold-bright sm:text-5xl">
+                    {fmt(annual)}
+                  </div>
+                </div>
               </div>
-            </Card>
-            <Card className="border-gold/40 bg-gold/10 text-center">
-              <div className="text-xs font-bold uppercase tracking-wide text-ink/60">
-                Annual savings
-              </div>
-              <div className="mt-1 text-4xl font-extrabold text-gold">
-                {fmt(result.annual_savings)}
-              </div>
-            </Card>
+
+              {bps != null && (
+                <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-white/10 pt-4">
+                  <span className="text-xs uppercase tracking-wide text-white/45">Effective rate</span>
+                  <span className="font-mono tnum text-sm text-white/80">
+                    {effectiveRate.toFixed(2)}%
+                    <span className="mx-2 text-white/30">→</span>
+                    {Number(result.mpg_estimated_rate).toFixed(2)}%
+                  </span>
+                  {bps > 0 && (
+                    <span className="font-mono tnum rounded-md bg-gold/15 px-2 py-0.5 text-sm font-bold text-gold-bright">
+                      −{bps} bps
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Comparison table */}
-          <Card>
+          <Card className="rise">
             <SectionTitle className="mb-3">Current vs MPG</SectionTitle>
-            <div className="overflow-hidden rounded-lg border border-slate-200">
+            <div className="overflow-hidden rounded-lg border border-line">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-bg text-left text-xs uppercase tracking-wide text-ink/50">
-                    <th className="px-3 py-2"></th>
-                    <th className="px-3 py-2">Current ({form.processor || 'theirs'})</th>
-                    <th className="px-3 py-2 text-navy">MPG</th>
+                    <th className="px-3 py-2 font-semibold"></th>
+                    <th className="px-3 py-2 font-semibold">Current ({form.processor || 'theirs'})</th>
+                    <th className="px-3 py-2 font-semibold text-navy">MPG</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-line">
                   <tr>
-                    <td className="px-3 py-2 font-medium text-ink/70">Effective rate</td>
-                    <td className="px-3 py-2">{effectiveRate ? `${effectiveRate.toFixed(2)}%` : '—'}</td>
-                    <td className="px-3 py-2 font-semibold text-navy">
+                    <td className="px-3 py-2.5 font-medium text-ink/70">Effective rate</td>
+                    <td className="px-3 py-2.5 font-mono tnum text-ink/70">
+                      {effectiveRate ? `${effectiveRate.toFixed(2)}%` : '—'}
+                    </td>
+                    <td className="px-3 py-2.5 font-mono tnum font-bold text-navy">
                       {result.mpg_estimated_rate ? `${result.mpg_estimated_rate}%` : '—'}
                     </td>
                   </tr>
                   <tr>
-                    <td className="px-3 py-2 font-medium text-ink/70">Monthly cost</td>
-                    <td className="px-3 py-2">{fmt(form.fees)}</td>
-                    <td className="px-3 py-2 font-semibold text-navy">
+                    <td className="px-3 py-2.5 font-medium text-ink/70">Monthly cost</td>
+                    <td className="px-3 py-2.5 font-mono tnum text-ink/70">{fmt(form.fees)}</td>
+                    <td className="px-3 py-2.5 font-mono tnum font-bold text-navy">
                       {fmt(result.mpg_estimated_cost)}
                     </td>
                   </tr>
+                  <tr className="bg-win/5">
+                    <td className="px-3 py-2.5 font-semibold text-ink">Monthly savings</td>
+                    <td className="px-3 py-2.5 text-ink/40">—</td>
+                    <td className="px-3 py-2.5">
+                      <Money value={result.monthly_savings} sign className="font-bold text-win" />
+                    </td>
+                  </tr>
                   <tr>
-                    <td className="px-3 py-2 font-medium text-ink/70">Recommended package</td>
-                    <td className="px-3 py-2">—</td>
-                    <td className="px-3 py-2 font-semibold text-navy">
+                    <td className="px-3 py-2.5 font-medium text-ink/70">Recommended package</td>
+                    <td className="px-3 py-2.5 text-ink/40">—</td>
+                    <td className="px-3 py-2.5 font-semibold text-navy">
                       {result.recommended_package || '—'}
                     </td>
                   </tr>
@@ -292,10 +339,8 @@ export default function StatementAudit({ leads, refresh }) {
             {/* Junk fees + BuyFin flags */}
             {Array.isArray(result.junk_fees) && result.junk_fees.length > 0 && (
               <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3">
-                <div className="mb-1 text-xs font-bold uppercase tracking-wide text-red-700">
-                  Junk fees flagged
-                </div>
-                <ul className="list-inside list-disc text-sm text-red-700">
+                <Eyebrow className="text-red-700">Junk fees flagged</Eyebrow>
+                <ul className="mt-1.5 list-inside list-disc text-sm text-red-700">
                   {result.junk_fees.map((f, i) => (
                     <li key={i}>{f}</li>
                   ))}
@@ -303,23 +348,26 @@ export default function StatementAudit({ leads, refresh }) {
               </div>
             )}
             {result.lead_with_buyfin && (
-              <div className="mt-3 rounded-lg border border-gold/40 bg-gold/10 p-3 text-sm font-medium text-ink">
+              <div
+                className="mt-3 rounded-lg border border-line bg-gold/10 p-3 text-sm font-medium text-ink"
+                style={{ borderLeftColor: '#C9A84C', borderLeftWidth: '3px' }}
+              >
                 Volume is strong here. Lead with the BuyFin capital offer, then close on payments.
               </div>
             )}
           </Card>
 
           {/* Summary */}
-          <Card>
-            <SectionTitle className="mb-3">Audit Summary</SectionTitle>
-            <CopyBlock text={result.summary} />
+          <Card className="rise">
+            <SectionTitle className="mb-3">Audit summary</SectionTitle>
+            <CopyBlock label="Talk track" text={result.summary} />
             <div className="mt-4 flex items-center gap-3">
               <Button variant="primary" onClick={saveToLead} disabled={saved}>
-                {saved ? 'Saved ✓' : 'Save Audit to Lead'}
+                {saved ? 'Saved ✓' : 'Save audit to lead'}
               </Button>
               {!form.leadId && !saved && (
                 <span className="text-xs text-ink/50">
-                  Saved as a standalone audit. Pick a lead above to link it.
+                  Saved on its own. Pick a lead above to link it.
                 </span>
               )}
             </div>

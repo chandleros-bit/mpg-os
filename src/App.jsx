@@ -77,6 +77,7 @@ export default function App() {
         onCloseMobile={() => setMobileOpen(false)}
         onSignOut={() => supabase.auth.signOut()}
         email={session?.user?.email}
+        leads={leadsState.leads}
       />
 
       <div className="lg:pl-64">
@@ -89,7 +90,7 @@ export default function App() {
           >
             ☰
           </button>
-          <span className="font-bold text-navy">{activeLabel}</span>
+          <span className="font-display font-bold tracking-tight text-navy">{activeLabel}</span>
         </header>
 
         <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6">

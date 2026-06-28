@@ -7,7 +7,8 @@ import { useDraft } from '../lib/useDraft.js';
 import { VERTICALS } from '../lib/colors.js';
 import {
   Card,
-  SectionTitle,
+  PageHeader,
+  Eyebrow,
   Button,
   Field,
   Input,
@@ -15,8 +16,16 @@ import {
   Spinner,
   ErrorBanner,
   ScoreBadge,
-  Empty,
 } from '../components/ui.jsx';
+
+// Score tier -> spine color, so a hot lead reads before you do the math.
+const scoreTier = (s) => {
+  const n = Number(s) || 0;
+  if (n >= 8) return '#1F9D55';
+  if (n >= 5) return '#C9A84C';
+  if (n > 0) return '#169DD1';
+  return '#E6E8EE';
+};
 
 export default function LeadScraper({ refresh }) {
   const [form, setForm] = useDraft('lead-scraper', {
@@ -112,12 +121,15 @@ export default function LeadScraper({ refresh }) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-navy">Lead Scraper</h1>
-        <p className="text-sm text-ink/60">Find prospects, score them, and load your pipeline.</p>
+      <div className="rise">
+        <PageHeader
+          eyebrow="Prospecting"
+          title="Lead scraper"
+          sub="Find prospects, score them, and load the pipeline with the hot ones."
+        />
       </div>
 
-      <Card>
+      <Card className="rise">
         <div className="grid gap-4 sm:grid-cols-3">
           <Field label="City or ZIP">
             <Input
@@ -179,22 +191,22 @@ export default function LeadScraper({ refresh }) {
             const key = r.place_id || r.name;
             const isAdded = added[key];
             return (
-              <Card key={key}>
+              <Card key={key} className="rise" spine={r.scoring ? undefined : scoreTier(r.score)}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="font-bold text-navy">{r.name}</div>
                     <div className="mt-0.5 text-xs text-ink/50">{r.address}</div>
-                    <div className="mt-1 text-xs text-ink/60">
+                    <div className="mt-1 font-mono text-xs text-ink/60">
                       {r.phone || 'no phone'}
                       {r.rating ? ` · ★ ${r.rating} (${r.reviews})` : ''}
                     </div>
-                    <div className="mt-1 inline-block rounded-full bg-light px-2 py-0.5 text-xs font-semibold text-navy">
+                    <div className="mt-1.5 inline-block rounded-full bg-light px-2 py-0.5 text-xs font-semibold text-navy">
                       {r.vertical}
                     </div>
                   </div>
                   <div className="shrink-0 text-center">
                     {r.scoring ? (
-                      <span className="text-xs text-ink/40">scoring...</span>
+                      <span className="text-xs text-ink/40">scoring…</span>
                     ) : (
                       <ScoreBadge score={r.score} />
                     )}
@@ -203,12 +215,17 @@ export default function LeadScraper({ refresh }) {
 
                 {r.estimated_monthly_volume ? (
                   <div className="mt-2 text-xs text-ink/60">
-                    Est. volume: ${Number(r.estimated_monthly_volume).toLocaleString()}/mo
+                    Est. volume{' '}
+                    <span className="font-mono tnum font-semibold text-ink">
+                      ${Number(r.estimated_monthly_volume).toLocaleString()}
+                    </span>
+                    /mo
                   </div>
                 ) : null}
                 {r.suggested_opener && (
-                  <div className="mt-2 rounded-lg bg-bg p-2 text-xs italic text-ink/70">
-                    “{r.suggested_opener}”
+                  <div className="mt-2 rounded-lg border border-line bg-bg p-2.5">
+                    <Eyebrow className="text-gold">Opener</Eyebrow>
+                    <p className="mt-1 text-xs italic text-ink/75">“{r.suggested_opener}”</p>
                   </div>
                 )}
 

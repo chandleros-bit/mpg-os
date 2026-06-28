@@ -10,10 +10,17 @@ body,
 
 body {
   margin: 0;
-  background-color: #f8f9fb;
+  background-color: #f6f7f9;
   color: #1a1a2e;
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* All ledger figures align in columns like a real statement. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
 
 /* one-line clamp helper used in a few cards */
@@ -22,4 +29,40 @@ body {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* ---- Signature: the statement panel ------------------------------------ */
+/* Faint horizontal rules, like ruled accounting paper, over the dark panel. */
+.ledger-rule {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.05) 0,
+    rgba(255, 255, 255, 0.05) 1px,
+    transparent 1px,
+    transparent 30px
+  );
+}
+
+/* Torn-receipt bottom edge: a scalloped mask punched along the panel base. */
+.receipt-edge {
+  -webkit-mask:
+    radial-gradient(9px at 9px 100%, transparent 98%, #000) repeat-x 0 100% / 18px 11px,
+    linear-gradient(#000, #000) no-repeat 0 0 / 100% calc(100% - 10px);
+  mask:
+    radial-gradient(9px at 9px 100%, transparent 98%, #000) repeat-x 0 100% / 18px 11px,
+    linear-gradient(#000, #000) no-repeat 0 0 / 100% calc(100% - 10px);
+}
+
+/* ---- Motion ------------------------------------------------------------ */
+@media (prefers-reduced-motion: no-preference) {
+  .rise {
+    animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
+/* ---- Focus floor ------------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid #169dd1;
+  outline-offset: 2px;
+  border-radius: 4px;
 }

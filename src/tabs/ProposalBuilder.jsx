@@ -5,6 +5,8 @@ import { useDraft } from '../lib/useDraft.js';
 import {
   Card,
   SectionTitle,
+  PageHeader,
+  Eyebrow,
   Button,
   Field,
   Select,
@@ -50,12 +52,15 @@ export default function ProposalBuilder({ leads }) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-navy">Proposal Builder</h1>
-        <p className="text-sm text-ink/60">Turn messy discovery notes into a clean proposal.</p>
+      <div className="rise">
+        <PageHeader
+          eyebrow="Closing"
+          title="Proposal builder"
+          sub="Turn messy discovery notes into a clean proposal."
+        />
       </div>
 
-      <Card>
+      <Card className="rise">
         <div className="grid gap-4">
           <Field label="Lead (optional, helps tailor it)">
             <Select value={form.leadId} onChange={(e) => setForm({ ...form, leadId: e.target.value })}>
@@ -101,8 +106,11 @@ export default function ProposalBuilder({ leads }) {
       </Card>
 
       {proposal && (
-        <Card>
-          <SectionTitle className="mb-4">Proposal for {lead?.business_name || 'this business'}</SectionTitle>
+        <Card className="rise">
+          <Eyebrow>Proposal</Eyebrow>
+          <SectionTitle className="mb-4 mt-1">
+            For {lead?.business_name || 'this business'}
+          </SectionTitle>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Detail label="Recommended package" value={proposal.recommended_package} />
@@ -110,15 +118,13 @@ export default function ProposalBuilder({ leads }) {
           </div>
 
           <div className="mt-4">
-            <div className="text-xs font-bold uppercase tracking-wide text-accent">Why this package</div>
+            <Eyebrow>Why this package</Eyebrow>
             <p className="mt-1 text-sm text-ink">{proposal.package_justification}</p>
           </div>
 
           {Array.isArray(proposal.top_features) && (
             <div className="mt-4">
-              <div className="text-xs font-bold uppercase tracking-wide text-accent">
-                Top 3 features to highlight
-              </div>
+              <Eyebrow>Top 3 features to highlight</Eyebrow>
               <ul className="mt-1 list-inside list-disc text-sm text-ink">
                 {proposal.top_features.map((f, i) => (
                   <li key={i}>{f}</li>
@@ -143,12 +149,10 @@ export default function ProposalBuilder({ leads }) {
 
           <div className="mt-4">
             <div className="mb-1.5 flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wide text-accent">
-                Draft proposal email
-              </span>
+              <Eyebrow>Draft proposal email</Eyebrow>
               <CopyButton text={proposal.proposal_email} />
             </div>
-            <p className="whitespace-pre-wrap rounded-lg border border-slate-200 bg-bg p-3 text-sm text-ink">
+            <p className="whitespace-pre-wrap rounded-lg border border-line bg-bg p-3 text-sm text-ink">
               {proposal.proposal_email}
             </p>
           </div>
@@ -160,9 +164,9 @@ export default function ProposalBuilder({ leads }) {
 
 function Detail({ label, value }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-bg p-3">
-      <div className="text-xs font-bold uppercase tracking-wide text-ink/50">{label}</div>
-      <div className="mt-0.5 text-sm font-semibold text-navy">{value || '—'}</div>
+    <div className="rounded-lg border border-line bg-bg p-3">
+      <Eyebrow className="text-ink/45">{label}</Eyebrow>
+      <div className="mt-1 text-sm font-semibold text-navy">{value || '—'}</div>
     </div>
   );
 }
@@ -171,7 +175,7 @@ function Flag({ on, onText, offText }) {
   return (
     <span
       className={`rounded-full px-3 py-1 text-xs font-semibold ${
-        on ? 'bg-gold text-ink' : 'bg-slate-100 text-ink/50'
+        on ? 'bg-gold text-ink' : 'bg-bg text-ink/50 border border-line'
       }`}
     >
       {on ? `✓ ${onText}` : offText}

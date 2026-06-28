@@ -6,6 +6,8 @@ import { useDraft } from '../lib/useDraft.js';
 import {
   Card,
   SectionTitle,
+  PageHeader,
+  Eyebrow,
   Button,
   Field,
   Input,
@@ -61,17 +63,20 @@ export default function ReferralPartners() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold text-navy">Referral Partners</h1>
-          <p className="text-sm text-ink/60">Your referral network and how to pitch each type.</p>
-        </div>
-        <Button variant="gold" onClick={() => setModalOpen(true)}>
-          + Add Partner
-        </Button>
+      <div className="rise">
+        <PageHeader
+          eyebrow="Network"
+          title="Referral partners"
+          sub="Your referral network and how to pitch each type."
+          actions={
+            <Button variant="gold" onClick={() => setModalOpen(true)}>
+              + Add partner
+            </Button>
+          }
+        />
       </div>
 
-      <Card>
+      <Card className="rise">
         <ErrorBanner message={error} />
         {loading ? (
           <Empty>Loading partners...</Empty>
@@ -81,26 +86,30 @@ export default function ReferralPartners() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-ink/50">
-                  <th className="px-2 py-2">Name</th>
-                  <th className="px-2 py-2">Type</th>
-                  <th className="px-2 py-2 hidden sm:table-cell">Company</th>
-                  <th className="px-2 py-2 hidden sm:table-cell">Phone</th>
-                  <th className="px-2 py-2 text-center">Sent</th>
-                  <th className="px-2 py-2 text-center">Closed</th>
+                <tr className="border-b border-line text-left text-xs uppercase tracking-wide text-ink/50">
+                  <th className="px-2 py-2 font-semibold">Name</th>
+                  <th className="px-2 py-2 font-semibold">Type</th>
+                  <th className="px-2 py-2 hidden font-semibold sm:table-cell">Company</th>
+                  <th className="px-2 py-2 hidden font-semibold sm:table-cell">Phone</th>
+                  <th className="px-2 py-2 text-center font-semibold">Sent</th>
+                  <th className="px-2 py-2 text-center font-semibold">Closed</th>
+                  <th className="px-2 py-2 text-right font-semibold">Close rate</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-line">
                 {partners.map((p) => {
                   const badge = TYPE_BADGE[p.partner_type] || { bg: '#e3e6ec', text: '#1A1A2E' };
+                  const sent = p.referrals_sent || 0;
+                  const closed = p.deals_closed || 0;
+                  const rate = sent > 0 ? Math.round((closed / sent) * 100) : null;
                   return (
                     <tr
                       key={p.id}
                       onClick={() => setSelected(p)}
-                      className="cursor-pointer hover:bg-bg"
+                      className="cursor-pointer transition hover:bg-bg"
                     >
-                      <td className="px-2 py-2 font-semibold text-navy">{p.name}</td>
-                      <td className="px-2 py-2">
+                      <td className="px-2 py-2.5 font-semibold text-navy">{p.name}</td>
+                      <td className="px-2 py-2.5">
                         <span
                           className="rounded-full px-2 py-0.5 text-xs font-semibold"
                           style={{ backgroundColor: badge.bg, color: badge.text }}
@@ -108,10 +117,13 @@ export default function ReferralPartners() {
                           {typeLabel(p.partner_type)}
                         </span>
                       </td>
-                      <td className="px-2 py-2 hidden text-ink/70 sm:table-cell">{p.company || '—'}</td>
-                      <td className="px-2 py-2 hidden text-ink/70 sm:table-cell">{p.phone || '—'}</td>
-                      <td className="px-2 py-2 text-center">{p.referrals_sent || 0}</td>
-                      <td className="px-2 py-2 text-center">{p.deals_closed || 0}</td>
+                      <td className="px-2 py-2.5 hidden text-ink/70 sm:table-cell">{p.company || '—'}</td>
+                      <td className="px-2 py-2.5 hidden font-mono text-ink/70 sm:table-cell">{p.phone || '—'}</td>
+                      <td className="px-2 py-2.5 text-center font-mono tnum">{sent}</td>
+                      <td className="px-2 py-2.5 text-center font-mono tnum">{closed}</td>
+                      <td className="px-2 py-2.5 text-right font-mono tnum font-bold text-navy">
+                        {rate == null ? <span className="text-ink/30">—</span> : `${rate}%`}
+                      </td>
                     </tr>
                   );
                 })}
@@ -172,8 +184,9 @@ function OutreachGenerator() {
   };
 
   return (
-    <Card>
-      <SectionTitle className="mb-3">Outreach Script Generator</SectionTitle>
+    <Card className="rise">
+      <Eyebrow>Recruit</Eyebrow>
+      <SectionTitle className="mb-3 mt-1">Outreach script</SectionTitle>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Partner type">
           <Select
@@ -209,7 +222,7 @@ function OutreachGenerator() {
         <ErrorBanner message={error} />
       </div>
       {script && (
-        <div className="mt-4 rounded-lg border border-slate-200 bg-bg p-4">
+        <div className="mt-4 rounded-lg border border-line bg-bg p-4">
           <div className="mb-2 flex justify-end">
             <CopyButton text={script} label="Copy script" />
           </div>
@@ -347,7 +360,7 @@ function PartnerDetail({ partner, onClose, onUpdated }) {
           <p className="rounded-lg bg-bg p-3 text-sm text-ink/80">{partner.notes}</p>
         )}
 
-        <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-3">
+        <div className="grid grid-cols-2 gap-3 border-t border-line pt-3">
           <Field label="Referrals sent">
             <Input type="number" value={sent} onChange={(e) => setSent(e.target.value)} />
           </Field>

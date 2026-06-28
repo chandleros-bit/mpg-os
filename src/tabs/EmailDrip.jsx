@@ -4,7 +4,8 @@ import { DRIP_SYSTEM, dripPrompt } from '../lib/prompts.js';
 import { useDraft } from '../lib/useDraft.js';
 import {
   Card,
-  SectionTitle,
+  PageHeader,
+  Eyebrow,
   Button,
   Field,
   Input,
@@ -60,12 +61,15 @@ export default function EmailDrip({ leads }) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-navy">Email Drip</h1>
-        <p className="text-sm text-ink/60">A 4-touch follow-up sequence that sounds like you wrote it.</p>
+      <div className="rise">
+        <PageHeader
+          eyebrow="Follow-up"
+          title="Email drip"
+          sub="A 4-touch sequence that sounds like you wrote it."
+        />
       </div>
 
-      <Card>
+      <Card className="rise">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Lead">
             <Select value={form.leadId} onChange={(e) => setForm({ ...form, leadId: e.target.value })}>
@@ -135,19 +139,29 @@ export default function EmailDrip({ leads }) {
       </Card>
 
       {emails && emails.length > 0 && (
-        <div className="space-y-4">
-          {emails.map((em, i) => (
-            <Card key={i}>
-              <div className="mb-2 flex items-center justify-between">
-                <span className="rounded-full bg-light px-2.5 py-0.5 text-xs font-bold text-navy">
-                  Day {em.day}
-                </span>
-                <CopyButton text={`Subject: ${em.subject}\n\n${em.body}`} label="Copy email" />
-              </div>
-              <div className="text-sm font-bold text-navy">{em.subject}</div>
-              <p className="mt-1.5 whitespace-pre-wrap text-sm text-ink">{em.body}</p>
-            </Card>
-          ))}
+        <div className="rise">
+          <Eyebrow>The cadence</Eyebrow>
+          {/* Touches strung on one timeline — the drip you can see. */}
+          <ol className="mt-3 space-y-4">
+            {emails.map((em, i) => (
+              <li key={i} className="relative flex gap-4">
+                {/* rail + node */}
+                <div className="flex flex-col items-center">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-white font-mono tnum text-xs font-bold text-navy shadow-sm">
+                    D{em.day}
+                  </span>
+                  {i < emails.length - 1 && <span className="mt-1 w-px flex-1 bg-line" />}
+                </div>
+                <Card className="mb-0 flex-1">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <div className="text-sm font-bold text-navy">{em.subject}</div>
+                    <CopyButton text={`Subject: ${em.subject}\n\n${em.body}`} label="Copy email" />
+                  </div>
+                  <p className="whitespace-pre-wrap text-sm text-ink">{em.body}</p>
+                </Card>
+              </li>
+            ))}
+          </ol>
         </div>
       )}
     </div>

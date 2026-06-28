@@ -12,6 +12,8 @@ import { VERTICALS, CALL_OUTCOMES, OUTCOME_TO_STATUS } from '../lib/colors.js';
 import {
   Card,
   SectionTitle,
+  PageHeader,
+  Eyebrow,
   Button,
   Field,
   Input,
@@ -33,9 +35,12 @@ const QUICK_OBJECTIONS = [
 export default function CallCenter({ leads, refresh }) {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-navy">Call Center</h1>
-        <p className="text-sm text-ink/60">Scripts, rebuttals, and call logging in one place.</p>
+      <div className="rise">
+        <PageHeader
+          eyebrow="On the phones"
+          title="Call center"
+          sub="Open the call, handle the pushback, log the outcome."
+        />
       </div>
       <TalkTrack />
       <ObjectionHandler />
@@ -73,8 +78,9 @@ function TalkTrack() {
   };
 
   return (
-    <Card>
-      <SectionTitle className="mb-3">A · Talk Track Generator</SectionTitle>
+    <Card className="rise">
+      <Eyebrow>Open the call</Eyebrow>
+      <SectionTitle className="mb-3 mt-1">Talk track</SectionTitle>
       <div className="grid gap-4 sm:grid-cols-3">
         <Field label="Vertical">
           <Select value={form.vertical} onChange={(e) => setForm({ ...form, vertical: e.target.value })}>
@@ -119,7 +125,7 @@ function TalkTrack() {
         <ErrorBanner message={error} />
       </div>
       {script && (
-        <div className="mt-4 rounded-lg border border-slate-200 bg-bg p-4">
+        <div className="mt-4 rounded-lg border border-line bg-bg p-4">
           <div className="mb-2 flex justify-end">
             <CopyButton text={script} label="Copy full script" />
           </div>
@@ -161,14 +167,15 @@ function ObjectionHandler() {
   };
 
   return (
-    <Card>
-      <SectionTitle className="mb-3">B · Objection Handler</SectionTitle>
+    <Card className="rise">
+      <Eyebrow>Handle the pushback</Eyebrow>
+      <SectionTitle className="mb-3 mt-1">Objection handler</SectionTitle>
       <div className="mb-3 flex flex-wrap gap-2">
         {QUICK_OBJECTIONS.map((q) => (
           <button
             key={q}
             onClick={() => handle(q)}
-            className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-navy hover:bg-slate-50"
+            className="rounded-full border border-line bg-white px-3 py-1 text-xs font-medium text-navy transition hover:bg-bg"
           >
             {q}
           </button>
@@ -197,13 +204,16 @@ function ObjectionHandler() {
       {rebuttals && (
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           {[
-            ['Soft', rebuttals.soft, 'border-light'],
-            ['Direct', rebuttals.direct, 'border-accent'],
-            ['Hard Close', rebuttals.hard, 'border-gold'],
-          ].map(([label, body, border]) => (
+            ['Soft', rebuttals.soft, 'border-light', 'text-accent'],
+            ['Direct', rebuttals.direct, 'border-accent', 'text-accent-deep'],
+            ['Hard close', rebuttals.hard, 'border-gold', 'text-gold'],
+          ].map(([label, body, border, tone], i) => (
             <div key={label} className={`rounded-lg border-2 ${border} bg-white p-3`}>
               <div className="mb-1.5 flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wide text-navy">{label}</span>
+                <span className="flex items-center gap-1.5">
+                  <span className="font-mono tnum text-[11px] text-ink/35">{i + 1}</span>
+                  <Eyebrow className={tone}>{label}</Eyebrow>
+                </span>
                 <CopyButton text={body} />
               </div>
               <p className="text-sm text-ink">{body}</p>
@@ -255,8 +265,9 @@ function CallLogger({ leads, refresh }) {
   };
 
   return (
-    <Card>
-      <SectionTitle className="mb-3">C · Call Logger</SectionTitle>
+    <Card className="rise">
+      <Eyebrow>Close the loop</Eyebrow>
+      <SectionTitle className="mb-3 mt-1">Log the call</SectionTitle>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Lead">
           <Select
@@ -292,9 +303,9 @@ function CallLogger({ leads, refresh }) {
       </div>
       <div className="mt-4 flex items-center gap-3">
         <Button variant="primary" onClick={log} disabled={busy}>
-          {busy ? 'Logging...' : 'Log Call + Update Lead Status'}
+          {busy ? 'Logging…' : 'Log call + update status'}
         </Button>
-        {done && <span className="text-sm font-semibold text-emerald-600">Logged ✓</span>}
+        {done && <span className="text-sm font-semibold text-win">Logged ✓</span>}
       </div>
       <div className="mt-3">
         <ErrorBanner message={error} />

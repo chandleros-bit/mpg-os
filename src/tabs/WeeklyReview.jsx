@@ -6,7 +6,8 @@ import { daysSince } from '../lib/useLeads.js';
 import { useDraft } from '../lib/useDraft.js';
 import {
   Card,
-  SectionTitle,
+  PageHeader,
+  Eyebrow,
   Button,
   Field,
   Textarea,
@@ -77,21 +78,24 @@ export default function WeeklyReview({ leads }) {
     { label: 'Calls logged', value: stats.calls, color: '#169DD1' },
     { label: 'Demos booked', value: stats.demos, color: '#1B2B5E' },
     { label: 'Proposals sent', value: stats.proposals, color: '#C9A84C' },
-    { label: 'Deals closed', value: stats.closed, color: '#1f9d55' },
+    { label: 'Deals closed', value: stats.closed, color: '#1F9D55' },
   ];
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-navy">Weekly Review</h1>
-        <p className="text-sm text-ink/60">Your week by the numbers, plus a plan for Monday.</p>
+      <div className="rise">
+        <PageHeader
+          eyebrow="The scoreboard"
+          title="Weekly review"
+          sub="Your week by the numbers, plus a plan for Monday."
+        />
       </div>
 
-      {/* Scoreboard */}
+      {/* Scoreboard — the week as a ledger */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {board.map((b) => (
-          <Card key={b.label} className="text-center">
-            <div className="text-3xl font-extrabold" style={{ color: b.color }}>
+          <Card key={b.label} className="rise" spine={b.color}>
+            <div className="font-mono tnum text-4xl font-bold" style={{ color: b.color }}>
               {b.value}
             </div>
             <div className="mt-1 text-xs font-medium text-ink/60">{b.label}</div>
@@ -99,7 +103,7 @@ export default function WeeklyReview({ leads }) {
         ))}
       </div>
 
-      <Card>
+      <Card className="rise">
         <Field label="Anything else to add about your week? (optional)">
           <Textarea
             value={form.extra}
@@ -123,15 +127,13 @@ export default function WeeklyReview({ leads }) {
       </Card>
 
       {review && (
-        <Card className="space-y-4">
+        <Card className="rise space-y-4">
           <Block title="What went well" body={review.performance_summary} />
           <Block title="One thing to improve" body={review.one_improvement} accent />
 
           {Array.isArray(review.priority_leads) && review.priority_leads.length > 0 && (
             <div>
-              <div className="text-xs font-bold uppercase tracking-wide text-accent">
-                Priority leads
-              </div>
+              <Eyebrow>Priority leads</Eyebrow>
               <ul className="mt-1 list-inside list-disc text-sm text-ink">
                 {review.priority_leads.map((l, i) => (
                   <li key={i}>{l}</li>
@@ -142,9 +144,7 @@ export default function WeeklyReview({ leads }) {
 
           {Array.isArray(review.monday_plan) && (
             <div>
-              <div className="text-xs font-bold uppercase tracking-wide text-accent">
-                Monday plan
-              </div>
+              <Eyebrow>Monday plan</Eyebrow>
               <ol className="mt-1 list-inside list-decimal text-sm text-ink">
                 {review.monday_plan.map((t, i) => (
                   <li key={i}>{t}</li>
@@ -153,8 +153,10 @@ export default function WeeklyReview({ leads }) {
             </div>
           )}
 
-          <div className="rounded-lg bg-navy p-4 text-sm font-medium text-white">
-            {review.motivational_close}
+          <div className="overflow-hidden rounded-lg bg-navy-deep">
+            <div className="ledger-rule p-4 text-sm font-medium leading-relaxed text-white">
+              {review.motivational_close}
+            </div>
           </div>
         </Card>
       )}
@@ -165,11 +167,7 @@ export default function WeeklyReview({ leads }) {
 function Block({ title, body, accent }) {
   return (
     <div>
-      <div
-        className={`text-xs font-bold uppercase tracking-wide ${accent ? 'text-gold' : 'text-accent'}`}
-      >
-        {title}
-      </div>
+      <Eyebrow className={accent ? 'text-gold' : 'text-accent'}>{title}</Eyebrow>
       <p className="mt-1 text-sm text-ink">{body}</p>
     </div>
   );

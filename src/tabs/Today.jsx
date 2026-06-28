@@ -6,6 +6,9 @@ import { useDraft } from '../lib/useDraft.js';
 import {
   Card,
   SectionTitle,
+  PageHeader,
+  Eyebrow,
+  FunnelBar,
   Button,
   Field,
   Input,
@@ -51,6 +54,8 @@ export default function Today({ leads, loading, error, refresh, goToTab }) {
     return c;
   }, [leads]);
 
+  const openTotal = counts.new + counts.contacted + counts.demo_scheduled + counts.proposal_sent;
+
   // Map lead_id -> most recent call date.
   const lastCallByLead = useMemo(() => {
     const map = {};
@@ -83,7 +88,7 @@ export default function Today({ leads, loading, error, refresh, goToTab }) {
     e.preventDefault();
     setSaveError('');
     if (!form.business_name.trim()) {
-      setSaveError('Business name is required.');
+      setSaveError('Enter a business name to add the lead.');
       return;
     }
     setSaving(true);
@@ -106,59 +111,54 @@ export default function Today({ leads, loading, error, refresh, goToTab }) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-navy">Today</h1>
-        <p className="text-sm text-ink/60">Your daily focus. Work the cold ones first.</p>
+      <div className="rise">
+        <PageHeader
+          eyebrow="Daily desk"
+          title="Today"
+          sub="Work the cold ones first. The statement closes the rest."
+        />
       </div>
 
-      {/* Pipeline counts */}
-      <Card>
-        <SectionTitle className="mb-3">Pipeline</SectionTitle>
-        {loading ? (
-          <Empty>Loading pipeline...</Empty>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {STATUS_ORDER.map((s) => (
-              <div
-                key={s}
-                className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2"
-              >
-                <span
-                  className="inline-flex h-7 min-w-7 items-center justify-center rounded-full px-2 text-sm font-bold"
-                  style={{ backgroundColor: STATUS_META[s].bg, color: STATUS_META[s].text }}
-                >
-                  {counts[s]}
-                </span>
-                <span className="text-xs font-medium text-ink/70">{STATUS_META[s].label}</span>
-              </div>
-            ))}
+      {/* Pipeline funnel */}
+      <Card className="rise">
+        <div className="mb-4 flex items-center justify-between">
+          <SectionTitle>Pipeline</SectionTitle>
+          <div className="text-right">
+            <span className="font-mono tnum text-2xl font-bold text-navy">{openTotal}</span>
+            <span className="ml-1.5 text-xs text-ink/50">open</span>
           </div>
+        </div>
+        {loading ? (
+          <Empty>Loading pipeline…</Empty>
+        ) : (
+          <FunnelBar counts={counts} />
         )}
         <ErrorBanner message={error} />
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Call list */}
-        <Card>
-          <div className="mb-3 flex items-center justify-between">
-            <SectionTitle>Call Today</SectionTitle>
-            <span className="rounded-full bg-light px-2.5 py-0.5 text-xs font-bold text-navy">
+        <Card className="rise">
+          <div className="mb-1 flex items-center justify-between">
+            <SectionTitle>Call today</SectionTitle>
+            <span className="font-mono tnum rounded-full bg-light px-2.5 py-0.5 text-xs font-bold text-navy">
               {toCall.length}
             </span>
           </div>
-          <p className="mb-3 text-xs text-ink/50">New or contacted leads with no call in 3+ days.</p>
+          <p className="mb-3 text-xs text-ink/50">New or contacted, no call in 3+ days.</p>
           {toCall.length === 0 ? (
-            <Empty>Nobody is cold right now. Go scrape fresh leads.</Empty>
+            <Empty>Nobody is cold right now. Scrape fresh leads to keep the desk full.</Empty>
           ) : (
             <ul className="space-y-2">
               {toCall.slice(0, 12).map((l) => (
                 <li
                   key={l.id}
-                  className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2"
+                  className="flex items-center justify-between rounded-lg border border-line py-2 pl-3 pr-3 transition hover:bg-bg"
+                  style={{ borderLeftColor: STATUS_META[l.status].bg, borderLeftWidth: '3px' }}
                 >
                   <div className="min-w-0">
                     <div className="truncate text-sm font-semibold text-ink">{l.business_name}</div>
-                    <div className="truncate text-xs text-ink/50">
+                    <div className="truncate font-mono text-xs text-ink/50">
                       {l.phone || 'no phone'} · {l.vertical || 'unsorted'}
                     </div>
                   </div>
@@ -170,21 +170,25 @@ export default function Today({ leads, loading, error, refresh, goToTab }) {
         </Card>
 
         {/* Demos today */}
-        <Card>
+        <Card className="rise">
           <div className="mb-3 flex items-center justify-between">
-            <SectionTitle>Demos Booked Today</SectionTitle>
-            <span className="rounded-full bg-gold px-2.5 py-0.5 text-xs font-bold text-ink">
+            <SectionTitle>Demos booked today</SectionTitle>
+            <span className="font-mono tnum rounded-full bg-gold px-2.5 py-0.5 text-xs font-bold text-ink">
               {demosToday.length}
             </span>
           </div>
           {demosToday.length === 0 ? (
-            <Empty>No demos booked today yet. Go book one.</Empty>
+            <Empty>No demos booked yet today. Go book one.</Empty>
           ) : (
             <ul className="space-y-2">
               {demosToday.map((l) => (
-                <li key={l.id} className="rounded-lg border border-slate-100 px-3 py-2">
+                <li
+                  key={l.id}
+                  className="rounded-lg border border-line py-2 pl-3 pr-3"
+                  style={{ borderLeftColor: STATUS_META.demo_scheduled.bg, borderLeftWidth: '3px' }}
+                >
                   <div className="text-sm font-semibold text-ink">{l.business_name}</div>
-                  <div className="text-xs text-ink/50">{l.phone || 'no phone'}</div>
+                  <div className="font-mono text-xs text-ink/50">{l.phone || 'no phone'}</div>
                 </li>
               ))}
             </ul>
@@ -194,8 +198,8 @@ export default function Today({ leads, loading, error, refresh, goToTab }) {
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Quick add */}
-        <Card>
-          <SectionTitle className="mb-3">Quick Add Lead</SectionTitle>
+        <Card className="rise">
+          <SectionTitle className="mb-3">Quick add lead</SectionTitle>
           <form onSubmit={submit} className="space-y-3">
             <Field label="Business name">
               <Input
@@ -238,28 +242,31 @@ export default function Today({ leads, loading, error, refresh, goToTab }) {
             </Field>
             <ErrorBanner message={saveError} />
             <Button type="submit" variant="primary" disabled={saving}>
-              {saving ? 'Adding...' : 'Add to Pipeline'}
+              {saving ? 'Adding…' : 'Add to pipeline'}
             </Button>
           </form>
         </Card>
 
-        {/* CTA + tip */}
+        {/* Statement teaser + tip */}
         <div className="space-y-6">
-          <Card className="bg-navy text-white">
-            <SectionTitle className="mb-1 text-white">Highest-converting move</SectionTitle>
-            <p className="mb-4 text-sm text-white/70">
-              A statement on the table closes faster than any pitch. Run the numbers.
-            </p>
-            <Button variant="gold" onClick={() => goToTab('audit')}>
-              Run Statement Audit →
-            </Button>
-          </Card>
-
-          <Card>
-            <div className="mb-1 text-xs font-bold uppercase tracking-wide text-gold">
-              Closer tip of the day
+          <div className="rise overflow-hidden rounded-xl bg-navy-deep text-white shadow-sm">
+            <div className="ledger-rule p-5">
+              <Eyebrow className="text-gold">Highest-converting move</Eyebrow>
+              <p className="mb-1 mt-2 font-display text-lg font-bold leading-snug">
+                Put a statement on the table.
+              </p>
+              <p className="mb-4 text-sm text-white/65">
+                It closes faster than any pitch. Run their numbers and show the gap in basis points.
+              </p>
+              <Button variant="gold" onClick={() => goToTab('audit')}>
+                Run a statement audit →
+              </Button>
             </div>
-            <p className="text-sm font-medium text-ink">{tip}</p>
+          </div>
+
+          <Card className="rise" spine="#C9A84C">
+            <Eyebrow className="text-gold">From the floor</Eyebrow>
+            <p className="mt-2 text-sm font-medium text-ink">{tip}</p>
           </Card>
         </div>
       </div>
